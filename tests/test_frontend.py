@@ -108,7 +108,106 @@ class FrontendTests(unittest.TestCase):
         expect(self.page.locator("#lab1")).to_have_text("Blunt")
         expect(self.page.locator("#lab2")).to_have_text("Full")
         expect(self.page.locator("#voiceCombo")).to_have_text("2 / 2 / 2")
-        self.assertGreater(int(self.page.locator("#vWords").inner_text()), 50)
+        self.assertGreater(int(self.page.locator("#vWords").text_content()), 50)
+        expect(self.page.locator("#vWords")).to_have_attribute("aria-label", "79")
+
+    def test_restored_logo_and_consistent_typography(self):
+        serif = self.page.locator("h1").evaluate("el => getComputedStyle(el).fontFamily")
+        for selector in ["body", "h2", "h3", ".draft-body", ".voice-text"]:
+            self.assertEqual(self.page.locator(selector).first.evaluate(
+                "el => getComputedStyle(el).fontFamily"
+            ), serif)
+        mono = self.page.locator(".logo").first.evaluate("el => getComputedStyle(el).fontFamily")
+        self.assertIn("Space Mono", mono)
+        for selector in [".btn", ".nav-links", ".tab"]:
+            self.assertEqual(self.page.locator(selector).first.evaluate(
+                "el => getComputedStyle(el).fontFamily"
+            ), mono)
+        caret = self.page.locator(".logo .mk-caret").first
+        self.assertEqual(caret.evaluate("el => getComputedStyle(el).animationName"), "none")
+        self.page.emulate_media(reduced_motion="no-preference")
+        self.assertEqual(caret.evaluate("el => getComputedStyle(el).animationName"), "blink")
+        self.assertEqual(caret.evaluate("el => getComputedStyle(el).animationDuration"), "1.2s")
+
+    def test_reading_index_navigation_and_keyboard(self):
+        expect(self.page.locator("#readingIndex")).not_to_be_visible()
+        self.page.locator('#navLinks [data-goto="quality"]').click()
+        toggle = self.page.locator("#readingToggle")
+        expect(toggle).to_be_visible()
+        toggle.click()
+        expect(toggle).to_have_attribute("aria-expanded", "true")
+        chapters = self.page.locator("#readingChapters button")
+        self.assertEqual(chapters.count(), 7)
+        expect(self.page.locator('#readingChapters [data-goto="quality"]')).to_have_attribute(
+            "aria-current", "location"
+        )
+        toggle.press("ArrowDown")
+        expect(chapters.first).to_be_focused()
+        chapters.first.press("End")
+        expect(chapters.last).to_be_focused()
+        chapters.last.press("Escape")
+        expect(toggle).to_be_focused()
+        expect(toggle).to_have_attribute("aria-expanded", "false")
+        toggle.click()
+        self.page.locator('#readingChapters [data-goto="pricing"]').click()
+        expect(toggle).to_have_attribute("aria-expanded", "false")
+        self.assertLess(abs(self.page.locator("#pricing").bounding_box()["y"] - 96), 3)
+        self.page.locator("#fName").focus()
+        expect(self.page.locator("#readingIndex")).not_to_be_visible()
+
+    def test_process_player_manual_selection(self):
+        self.page.locator("#process").scroll_into_view_if_needed()
+        player = self.page.locator("#processPlayer")
+        expect(player).to_have_attribute("data-playing", "false")
+        buttons = self.page.locator(".process-seek")
+        for i, name in enumerate(["Talk", "Sample", "Decide", "Work"]):
+            buttons.nth(i).click()
+            expect(buttons.nth(i)).to_have_attribute("aria-current", "step")
+            expect(self.page.locator("#processPlayerLabel")).to_have_text(name)
+            self.assertEqual(self.page.locator(".step.is-current").count(), 1)
+            self.assertEqual(self.page.locator(".step:visible").count(), 4)
+        buttons.last.press("Home")
+        expect(buttons.first).to_be_focused()
+        buttons.first.press("ArrowRight")
+        expect(buttons.nth(1)).to_be_focused()
+        expect(self.page.locator("#processPlayerLabel")).to_have_text("Sample")
+
+    def test_process_player_play_pause_and_auto_advance(self):
+        self.page.locator("#process").scroll_into_view_if_needed()
+        control = self.page.locator("#processControl")
+        control.click()
+        expect(self.page.locator("#processPlayer")).to_have_attribute("data-playing", "true")
+        expect(control).to_have_attribute("aria-label", "Pause process walkthrough")
+        expect(self.page.locator("#processPlayerLabel")).to_have_text("Sample", timeout=6000)
+        control.click()
+        expect(self.page.locator("#processPlayer")).to_have_attribute("data-playing", "false")
+        expect(control).to_have_attribute("aria-label", "Play process walkthrough")
+        control.click()
+        self.page.locator("#start").scroll_into_view_if_needed()
+        expect(self.page.locator("#processPlayer")).to_have_attribute("data-playing", "false")
+        self.page.locator("#process").scroll_into_view_if_needed()
+        self.page.locator(".process-seek").last.click()
+        control.click()
+        expect(control).to_have_attribute("aria-label", "Replay process walkthrough", timeout=6000)
+        control.click()
+        expect(self.page.locator("#processPlayerLabel")).to_have_text("Talk")
+        expect(self.page.locator("#processPlayer")).to_have_attribute("data-playing", "true")
+
+    def test_rolling_counters_keep_accessible_values(self):
+        for counter in self.page.locator(".score-top b").all():
+            expect(counter).to_have_attribute("aria-label", counter.text_content())
+            self.assertEqual(counter.inner_text(), counter.text_content())
+            self.assertGreater(counter.locator(".rolling-digit").count(), 0)
+        self.page.locator("#tone").scroll_into_view_if_needed()
+        self.page.emulate_media(reduced_motion="no-preference")
+        count = self.page.locator("#vWords")
+        count.scroll_into_view_if_needed()
+        expect(count).to_have_attribute("data-counter-visible", "true")
+        self.page.locator("#s2").fill("2")
+        expect(count).to_have_attribute("aria-label", count.text_content())
+        self.page.locator("#s2").fill("0")
+        expect(count).to_have_attribute("aria-label", count.text_content())
+        expect(count.locator(".roll-down").first).to_be_attached()
 
     def test_faq_accessibility_and_keyboard(self):
         questions = self.page.locator(".faq-q")

@@ -20,7 +20,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 34'%3E%3Cg fill='none' stroke='%231F3529' stroke-width='2.6' stroke-linecap='square'%3E%3Cpath d='M13 4H6v26h7'/%3E%3Cpath d='M21 4h7v26h-7' stroke-dasharray='4 4' opacity='.45'/%3E%3C/g%3E%3Crect x='15.6' y='9' width='3' height='16' fill='%234D673A'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;550;600;650;700&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script>document.documentElement.classList.add("js");</script>
 
 <style>
@@ -465,7 +465,7 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;background:var(--pape
       </div>
     </div>
 
-    <div class="rv">
+    <div class="rv service-workbench">
       <div class="tabs" role="tablist" aria-label="Services">
         <button class="tab" role="tab" id="t-li" aria-controls="p-li" aria-selected="true"><span class="tab-i">01</span>LinkedIn</button>
         <button class="tab" role="tab" id="t-blog" aria-controls="p-blog" aria-selected="false" tabindex="-1"><span class="tab-i">02</span>Blogs</button>
@@ -744,6 +744,7 @@ Both of them treated the scope as a suggestion. The price was never the problem.
         <p class="sec-desc">The order is the point. Nothing is written before we talk, and nothing is charged before you have seen the work.</p>
       </div>
     </div>
+    <div id="processPlayer" class="process-player" hidden></div>
     <div class="steps rv">
       <div class="step"><span class="step-n">STEP 01</span><h3>Talk</h3>
         <p>A call about your product, audience and how you want to come across.</p>
@@ -1317,5 +1318,6 @@ Both of them treated the scope as a suggestion. The price was never the problem.
   frame();
 })();
 </script>
+<script src="studio.js"></script>
 </body>
 </html>
